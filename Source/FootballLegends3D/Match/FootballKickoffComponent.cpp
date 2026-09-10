@@ -60,13 +60,7 @@ AFootballPlayer* UFootballKickoffComponent::FindKickoffPlayer(EFootballTeamSide 
     for (TActorIterator<AFootballPlayer> It(GetWorld()); It; ++It)
     {
         AFootballPlayer* Player = *It;
-        if (!IsValid(Player))
-        {
-            continue;
-        }
-
-        const UFootballTeamComponent* TeamComponent = Player->FindComponentByClass<UFootballTeamComponent>();
-        if (!TeamComponent || !TeamComponent->IsOnSide(Side))
+        if (!IsValid(Player) || !Player->Team || !Player->Team->IsOnSide(Side))
         {
             continue;
         }
@@ -113,9 +107,7 @@ void UFootballKickoffComponent::ResetBallForKickoff()
         Mesh->SetPhysicsAngularVelocityInDegrees(FVector::ZeroVector);
     }
 
-    // The existing ball location defines the pitch center. This keeps the
-    // system independent of a particular stadium actor or map origin.
-    const FVector CenterLocation = MatchBall->GetActorLocation();
+    const FVector CenterLocation = MatchBall->GetActorLocation() - FVector::UpVector * KickoffBallHeight;
     MatchBall->SetActorLocation(CenterLocation + FVector::UpVector * KickoffBallHeight);
     MatchBall->SetActorRotation(FRotator::ZeroRotator);
 }
@@ -132,44 +124,28 @@ void UFootballKickoffComponent::SetPlayersForKickoff()
     for (TActorIterator<AFootballPlayer> It(GetWorld()); It; ++It)
     {
         AFootballPlayer* Player = *It;
-        if (!IsValid(Player))
+        if (!IsValid(Player) || !Player->Team)
         {
             continue;
         }
 
-        UFootballTeamComponent* TeamComponent = Player->FindComponentByClass<UFootballTeamComponent>();
-        if (!TeamComponent)
+        if (Player->Team->Team.Formation.Num() == 0)
         {
-            continue;
+            Player->Team->BuildDefaultFormation();
         }
 
-        if (TeamComponent->Team.Formation.Num() == 0)
+        const FFootballFormationSlot* Slot = Player->Team->FindSlotByShirtNumber(Player->Team->ShirtNumber);
+        if (!Slot && Player->Team->Team.Formation.Num() > 0)
         {
-            TeamComponent->BuildDefaultFormation();
-        }
-
-        const int32 ShirtNumber = TeamComponent->FindSlotByShirtNumber(
-            Player->Appearance ? FCString::Atoi(*Player->Appearance->PlayerId.ToString()) : 0);
-
-        const FFootballFormationSlot* Slot = nullptr;
-        if (ShirtNumber > 0)
-        {
-            Slot = TeamComponent->FindSlotByShirtNumber(ShirtNumber);
-        }
-
-        // Until player identity data exposes an explicit shirt number, use
-        // the actor's existing shirt-number-compatible slot when available.
-        if (!Slot)
-        {
-            const int32 Index = FMath::Clamp(Player->GetUniqueID() % TeamComponent->Team.Formation.Num(), 0, TeamComponent->Team.Formation.Num() - 1);
-            Slot = &TeamComponent->Team.Formation[Index];
+            // Safe fallback for players whose shirt number has not yet been assigned.
+            Slot = &Player->Team->Team.Formation[0];
         }
 
         if (Slot)
         {
-            const FVector Target = GetFormationWorldLocation(Slot->NormalizedPosition, TeamComponent->Side, Center);
+            const FVector Target = GetFormationWorldLocation(Slot->NormalizedPosition, Player->Team->Side, Center);
             Player->SetActorLocation(Target);
-            Player->SetActorRotation(FRotator(0.0f, TeamComponent->Side == EFootballTeamSide::Home ? 0.0f : 180.0f, 0.0f));
+            Player->SetActorRotation(FRotator(0.0f, Player->Team->Side == EFootballTeamSide::Home ? 0.0f : 180.0f, 0.0f));
         }
 
         if (Player->GetCharacterMovement())
@@ -194,12 +170,10 @@ void UFootballKickoffComponent::PrepareKickoff()
         return;
     }
 
-    // Preserve the map-defined ball position as the center spot, then arrange
-    // both teams around that spot according to their formation data.
     ResetBallForKickoff();
     SetPlayersForKickoff();
 
-    bKickoffReady = IsValid(KickoffPlayer) || IsValid(MatchBall);
+    bKickoffReady = IsValid(MatchBall);
     if (bKickoffReady)
     {
         OnKickoffPrepared.Broadcast(KickoffSide);
@@ -221,6 +195,11 @@ void UFootballKickoffComponent::StartKickoff()
     if (IsValid(KickoffPlayer) && KickoffPlayer->BallPossession)
     {
         KickoffPlayer->BallPossession->AcquireBall(MatchBall);
+    }
+    else if (UStaticMeshComponent* Mesh = MatchBall->BallMesh)
+    {
+        Mesh->SetSimulatePhysics(true);
+        Mesh->WakeAllRigidBodies();
     }
 
     bKickoffReady = false;
