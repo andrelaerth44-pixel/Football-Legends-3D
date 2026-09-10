@@ -1,6 +1,8 @@
 #include "Ball/FootballBallPossessionComponent.h"
 #include "Ball/FootballBall.h"
+#include "Components/FootballBallInteractionComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "GameFramework/Actor.h"
 
 UFootballBallPossessionComponent::UFootballBallPossessionComponent()
 {
@@ -14,6 +16,16 @@ bool UFootballBallPossessionComponent::AcquireBall(AFootballBall* Ball)
         return false;
     }
 
+    if (ControlledBall == Ball)
+    {
+        return true;
+    }
+
+    if (IsValid(ControlledBall))
+    {
+        return false;
+    }
+
     if (FVector::Dist(GetOwner()->GetActorLocation(), Ball->GetActorLocation()) > MaxControlDistance)
     {
         return false;
@@ -21,17 +33,52 @@ bool UFootballBallPossessionComponent::AcquireBall(AFootballBall* Ball)
 
     ControlledBall = Ball;
     Ball->StopBall();
+
+    if (UPrimitiveComponent* Primitive = Ball->BallMesh)
+    {
+        Primitive->SetSimulatePhysics(false);
+        Primitive->SetPhysicsLinearVelocity(FVector::ZeroVector);
+        Primitive->SetPhysicsAngularVelocityInRadians(FVector::ZeroVector);
+    }
+
+    if (UFootballBallInteractionComponent* Interaction = GetOwner()->FindComponentByClass<UFootballBallInteractionComponent>())
+    {
+        Interaction->SetControlledBall(Ball);
+    }
+
     return true;
 }
 
 void UFootballBallPossessionComponent::ReleaseBall()
 {
+    AFootballBall* Ball = ControlledBall.Get();
     ControlledBall = nullptr;
+
+    if (Ball)
+    {
+        if (UPrimitiveComponent* Primitive = Ball->BallMesh)
+        {
+            Primitive->SetSimulatePhysics(true);
+        }
+    }
+
+    if (GetOwner())
+    {
+        if (UFootballBallInteractionComponent* Interaction = GetOwner()->FindComponentByClass<UFootballBallInteractionComponent>())
+        {
+            Interaction->ReleaseControlledBall();
+        }
+    }
 }
 
 bool UFootballBallPossessionComponent::HasBall() const
 {
     return IsValid(ControlledBall);
+}
+
+AFootballBall* UFootballBallPossessionComponent::GetControlledBall() const
+{
+    return ControlledBall.Get();
 }
 
 void UFootballBallPossessionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
