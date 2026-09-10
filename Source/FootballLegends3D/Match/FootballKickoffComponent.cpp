@@ -120,6 +120,8 @@ void UFootballKickoffComponent::SetPlayersForKickoff()
     }
 
     const FVector Center = MatchBall->GetActorLocation() - FVector::UpVector * KickoffBallHeight;
+    int32 HomeFallbackIndex = 0;
+    int32 AwayFallbackIndex = 0;
 
     for (TActorIterator<AFootballPlayer> It(GetWorld()); It; ++It)
     {
@@ -134,19 +136,23 @@ void UFootballKickoffComponent::SetPlayersForKickoff()
             Player->Team->BuildDefaultFormation();
         }
 
-        const FFootballFormationSlot* Slot = Player->Team->FindSlotByShirtNumber(Player->Team->ShirtNumber);
-        if (!Slot && Player->Team->Team.Formation.Num() > 0)
+        const int32 FormationCount = Player->Team->Team.Formation.Num();
+        if (FormationCount == 0)
         {
-            // Safe fallback for players whose shirt number has not yet been assigned.
-            Slot = &Player->Team->Team.Formation[0];
+            continue;
         }
 
-        if (Slot)
+        const FFootballFormationSlot* Slot = Player->Team->FindSlotByShirtNumber(Player->Team->ShirtNumber);
+        if (!Slot)
         {
-            const FVector Target = GetFormationWorldLocation(Slot->NormalizedPosition, Player->Team->Side, Center);
-            Player->SetActorLocation(Target);
-            Player->SetActorRotation(FRotator(0.0f, Player->Team->Side == EFootballTeamSide::Home ? 0.0f : 180.0f, 0.0f));
+            int32& FallbackIndex = Player->Team->Side == EFootballTeamSide::Home ? HomeFallbackIndex : AwayFallbackIndex;
+            Slot = &Player->Team->Team.Formation[FallbackIndex % FormationCount];
+            ++FallbackIndex;
         }
+
+        const FVector Target = GetFormationWorldLocation(Slot->NormalizedPosition, Player->Team->Side, Center);
+        Player->SetActorLocation(Target);
+        Player->SetActorRotation(FRotator(0.0f, Player->Team->Side == EFootballTeamSide::Home ? 0.0f : 180.0f, 0.0f));
 
         if (Player->GetCharacterMovement())
         {
