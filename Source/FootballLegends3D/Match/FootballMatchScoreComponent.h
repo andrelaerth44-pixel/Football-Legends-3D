@@ -2,19 +2,13 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "Match/FootballMatchTypes.h"
 #include "FootballMatchScoreComponent.generated.h"
 
 class AFootballBall;
 class AFootballGoalActor;
 
-UENUM(BlueprintType)
-enum class EFootballTeamSide : uint8
-{
-    Home UMETA(DisplayName="Home"),
-    Away UMETA(DisplayName="Away")
-};
-
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FFootballGoalEventSignature, EFootballTeamSide, ScoringSide, int32, HomeScore, int32, AwayScore, AFootballBall*, Ball);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FFootballGoalEventSignature, EFootballTeamSide, ScoringSide, int32, HomeScore, int32, AwayScore, AFootballBall*, Ball, float, ImpactSpeed);
 
 UCLASS(ClassGroup=(Football), meta=(BlueprintSpawnableComponent))
 class FOOTBALLLEGENDS3D_API UFootballMatchScoreComponent : public UActorComponent
@@ -43,7 +37,7 @@ public:
     FFootballGoalEventSignature OnGoal;
 
     UFUNCTION(BlueprintCallable, Category="Score")
-    void RegisterGoal(EFootballTeamSide ScoringSide, AFootballBall* Ball);
+    void RegisterGoal(EFootballTeamSide ScoringSide, AFootballBall* Ball, float ImpactSpeed = 0.0f);
 
     UFUNCTION(BlueprintCallable, Category="Score")
     void ResetScore();
@@ -63,14 +57,8 @@ protected:
 
 private:
     UFUNCTION()
-    void HandleHomeGoal(AFootballBall* Ball, float ImpactSpeed);
+    void HandleGoal(AFootballBall* Ball, float ImpactSpeed, EFootballTeamSide ScoringSide);
 
-    UFUNCTION()
-    void HandleAwayGoal(AFootballBall* Ball, float ImpactSpeed);
-
-    UPROPERTY(EditInstanceOnly, Category="Goals")
-    TObjectPtr<AFootballGoalActor> HomeGoal;
-
-    UPROPERTY(EditInstanceOnly, Category="Goals")
-    TObjectPtr<AFootballGoalActor> AwayGoal;
+    UPROPERTY()
+    TArray<TObjectPtr<AFootballGoalActor>> RegisteredGoals;
 };
