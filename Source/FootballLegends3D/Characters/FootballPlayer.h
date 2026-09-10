@@ -10,6 +10,7 @@ class UFootballBallInteractionComponent;
 class UFootballPlayerMovementComponent;
 class UFootballBallGameplayComponent;
 class UFootballBallPossessionComponent;
+class UFootballBallTargetingComponent;
 
 /** Reusable base character for every football player in the game. */
 UCLASS()
@@ -34,6 +35,9 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player|Ball")
     TObjectPtr<UFootballBallPossessionComponent> BallPossession;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player|Ball")
+    TObjectPtr<UFootballBallTargetingComponent> BallTargeting;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Player|Movement")
     TObjectPtr<UFootballPlayerMovementComponent> FootballMovement;
