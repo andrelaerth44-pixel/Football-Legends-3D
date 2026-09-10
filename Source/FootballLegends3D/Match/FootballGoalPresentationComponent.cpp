@@ -1,6 +1,7 @@
 #include "Match/FootballGoalPresentationComponent.h"
 #include "Match/FootballGoalSequenceComponent.h"
 #include "Match/FootballGoalReplayComponent.h"
+#include "Match/FootballGoalReplayDirectorComponent.h"
 #include "GameFramework/Actor.h"
 
 UFootballGoalPresentationComponent::UFootballGoalPresentationComponent()
@@ -16,6 +17,7 @@ void UFootballGoalPresentationComponent::BeginPlay()
     {
         Sequence = Owner->FindComponentByClass<UFootballGoalSequenceComponent>();
         Replay = Owner->FindComponentByClass<UFootballGoalReplayComponent>();
+        ReplayDirector = Owner->FindComponentByClass<UFootballGoalReplayDirectorComponent>();
     }
 
     if (Sequence)
@@ -51,6 +53,8 @@ void UFootballGoalPresentationComponent::PlayGoalPresentation(
     bPendingReplay = bAutoStartReplay && IsValid(Ball);
     ReplayDelayRemaining = FMath::Max(0.0f, ReplayDelay);
 
+    // Keep the recorder's rolling buffer intact. It is already tracking the
+    // ball from match start, so the replay contains the pre-goal approach.
     if (Replay && Ball)
     {
         Replay->SetTrackedBall(Ball);
@@ -74,6 +78,11 @@ void UFootballGoalPresentationComponent::StartReplayIfReady()
 
     bPendingReplay = false;
     Replay->StartReplay();
+
+    if (bAutoStartReplayCamera && ReplayDirector && Replay->IsReplaying())
+    {
+        ReplayDirector->StartGoalReplay(Replay->GetTrackedBall());
+    }
 }
 
 void UFootballGoalPresentationComponent::StartReplay()
@@ -81,12 +90,20 @@ void UFootballGoalPresentationComponent::StartReplay()
     if (Replay)
     {
         Replay->StartReplay();
+        if (bAutoStartReplayCamera && ReplayDirector && Replay->IsReplaying())
+        {
+            ReplayDirector->StartGoalReplay(Replay->GetTrackedBall());
+        }
     }
 }
 
 void UFootballGoalPresentationComponent::StopReplay()
 {
-    if (Replay)
+    if (ReplayDirector)
+    {
+        ReplayDirector->StopGoalReplay();
+    }
+    else if (Replay)
     {
         Replay->StopReplay();
     }
@@ -97,11 +114,7 @@ void UFootballGoalPresentationComponent::HandleGoalSequenceFinished()
     bPresentationActive = false;
     bPendingReplay = false;
     ReplayDelayRemaining = 0.0f;
-
-    if (Replay && Replay->IsReplaying())
-    {
-        Replay->StopReplay();
-    }
+    StopReplay();
 }
 
 void UFootballGoalPresentationComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
