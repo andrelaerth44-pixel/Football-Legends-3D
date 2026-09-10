@@ -7,6 +7,7 @@
 class UFootballMatchScoreComponent;
 class UFootballGoalSequenceComponent;
 class UFootballGoalReplayComponent;
+class UFootballGoalReplayDirectorComponent;
 class UFootballGoalPresentationComponent;
 
 UCLASS()
@@ -25,6 +26,9 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
     TObjectPtr<UFootballGoalReplayComponent> GoalReplay;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
+    TObjectPtr<UFootballGoalReplayDirectorComponent> GoalReplayDirector;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
     TObjectPtr<UFootballGoalPresentationComponent> GoalPresentation;
