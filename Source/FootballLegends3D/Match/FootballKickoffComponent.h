@@ -21,6 +21,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kickoff")
     EFootballTeamSide DefaultKickoffSide = EFootballTeamSide::Home;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kickoff", meta=(ClampMin="100.0"))
+    float PitchHalfLength = 5250.0f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kickoff", meta=(ClampMin="100.0"))
+    float PitchHalfWidth = 3400.0f;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Kickoff")
     float CenterTolerance = 180.0f;
 
@@ -32,6 +38,9 @@ public:
 
     UPROPERTY(BlueprintAssignable, Category="Kickoff")
     FFootballKickoffSignature OnKickoffStarted;
+
+    UFUNCTION(BlueprintCallable, Category="Kickoff")
+    void SetKickoffSide(EFootballTeamSide NewSide);
 
     UFUNCTION(BlueprintCallable, Category="Kickoff")
     void PrepareKickoff();
@@ -53,6 +62,7 @@ private:
     AFootballPlayer* FindKickoffPlayer(EFootballTeamSide Side) const;
     void SetPlayersForKickoff();
     void ResetBallForKickoff();
+    FVector GetFormationWorldLocation(const FVector2D& NormalizedPosition, EFootballTeamSide Side, const FVector& Center) const;
 
     UPROPERTY()
     TObjectPtr<AFootballBall> MatchBall;
