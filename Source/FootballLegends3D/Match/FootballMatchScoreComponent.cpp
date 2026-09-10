@@ -1,6 +1,8 @@
 #include "Match/FootballMatchScoreComponent.h"
 #include "Stadium/FootballGoalActor.h"
 #include "Ball/FootballBall.h"
+#include "EngineUtils.h"
+#include "Engine/World.h"
 
 UFootballMatchScoreComponent::UFootballMatchScoreComponent()
 {
@@ -11,14 +13,23 @@ void UFootballMatchScoreComponent::BeginPlay()
 {
     Super::BeginPlay();
 
-    if (HomeGoal)
+    RegisteredGoals.Reset();
+
+    if (!GetWorld())
     {
-        HomeGoal->OnGoalScored.AddDynamic(this, &UFootballMatchScoreComponent::HandleHomeGoal);
+        return;
     }
 
-    if (AwayGoal)
+    for (TActorIterator<AFootballGoalActor> It(GetWorld()); It; ++It)
     {
-        AwayGoal->OnGoalScored.AddDynamic(this, &UFootballMatchScoreComponent::HandleAwayGoal);
+        AFootballGoalActor* Goal = *It;
+        if (!IsValid(Goal))
+        {
+            continue;
+        }
+
+        RegisteredGoals.Add(Goal);
+        Goal->OnGoalScored.AddDynamic(this, &UFootballMatchScoreComponent::HandleGoal);
     }
 }
 
@@ -39,7 +50,7 @@ void UFootballMatchScoreComponent::TickComponent(float DeltaTime, ELevelTick Tic
     }
 }
 
-void UFootballMatchScoreComponent::RegisterGoal(EFootballTeamSide ScoringSide, AFootballBall* Ball)
+void UFootballMatchScoreComponent::RegisterGoal(EFootballTeamSide ScoringSide, AFootballBall* Ball, float ImpactSpeed)
 {
     if (IsMatchFinished())
     {
@@ -55,17 +66,12 @@ void UFootballMatchScoreComponent::RegisterGoal(EFootballTeamSide ScoringSide, A
         ++AwayScore;
     }
 
-    OnGoal.Broadcast(ScoringSide, HomeScore, AwayScore, Ball);
+    OnGoal.Broadcast(ScoringSide, HomeScore, AwayScore, Ball, ImpactSpeed);
 }
 
-void UFootballMatchScoreComponent::HandleHomeGoal(AFootballBall* Ball, float ImpactSpeed)
+void UFootballMatchScoreComponent::HandleGoal(AFootballBall* Ball, float ImpactSpeed, EFootballTeamSide ScoringSide)
 {
-    RegisterGoal(EFootballTeamSide::Home, Ball);
-}
-
-void UFootballMatchScoreComponent::HandleAwayGoal(AFootballBall* Ball, float ImpactSpeed)
-{
-    RegisterGoal(EFootballTeamSide::Away, Ball);
+    RegisterGoal(ScoringSide, Ball, ImpactSpeed);
 }
 
 void UFootballMatchScoreComponent::ResetScore()
@@ -75,14 +81,12 @@ void UFootballMatchScoreComponent::ResetScore()
     MatchTimeSeconds = 0.0f;
     bMatchClockRunning = true;
 
-    if (HomeGoal)
+    for (AFootballGoalActor* Goal : RegisteredGoals)
     {
-        HomeGoal->ResetGoal();
-    }
-
-    if (AwayGoal)
-    {
-        AwayGoal->ResetGoal();
+        if (IsValid(Goal))
+        {
+            Goal->ResetGoal();
+        }
     }
 }
 
