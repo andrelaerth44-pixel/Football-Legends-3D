@@ -65,19 +65,19 @@ void AFootballBall::TriggerDeformation(const FVector& Direction, float Speed)
         return;
     }
 
-    DeformationAxis = Direction.GetSafeNormal();
     DeformationTimeRemaining = DeformationDuration;
 
     const float Intensity = FMath::Clamp(Speed / 2500.0f, 0.0f, 1.0f);
     const float Squash = MaxDeformation * Intensity;
-    const FVector LocalAxis = GetActorTransform().InverseTransformVectorNoScale(DeformationAxis).GetSafeNormal();
+    const FVector LocalAxis = GetActorTransform().InverseTransformVectorNoScale(Direction).GetSafeNormal();
     const FVector AxisAbs(FMath::Abs(LocalAxis.X), FMath::Abs(LocalAxis.Y), FMath::Abs(LocalAxis.Z));
-    const FVector Scale = RestScale * FVector(
+
+    ImpactScale = RestScale * FVector(
         1.0f - Squash * (1.0f - AxisAbs.X),
         1.0f - Squash * (1.0f - AxisAbs.Y),
         1.0f - Squash * (1.0f - AxisAbs.Z));
 
-    BallMesh->SetRelativeScale3D(Scale);
+    BallMesh->SetRelativeScale3D(ImpactScale);
 }
 
 void AFootballBall::UpdateDeformation(float DeltaSeconds)
@@ -87,14 +87,15 @@ void AFootballBall::UpdateDeformation(float DeltaSeconds)
         return;
     }
 
-    const float PreviousRemaining = DeformationTimeRemaining;
     DeformationTimeRemaining = FMath::Max(0.0f, DeformationTimeRemaining - DeltaSeconds);
     const float Alpha = DeformationDuration > 0.0f
-        ? DeformationTimeRemaining / DeformationDuration
-        : 0.0f;
+        ? 1.0f - (DeformationTimeRemaining / DeformationDuration)
+        : 1.0f;
 
-    BallMesh->SetRelativeScale3D(FMath::Lerp(RestScale, BallMesh->GetRelativeScale3D(), Alpha));
-    if (PreviousRemaining > 0.0f && DeformationTimeRemaining <= KINDA_SMALL_NUMBER)
+    const float SmoothAlpha = FMath::SmoothStep(0.0f, 1.0f, Alpha);
+    BallMesh->SetRelativeScale3D(FMath::Lerp(ImpactScale, RestScale, SmoothAlpha));
+
+    if (DeformationTimeRemaining <= KINDA_SMALL_NUMBER)
     {
         BallMesh->SetRelativeScale3D(RestScale);
     }
