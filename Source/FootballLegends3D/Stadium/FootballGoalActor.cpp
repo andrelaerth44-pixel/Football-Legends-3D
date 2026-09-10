@@ -61,7 +61,6 @@ void AFootballGoalActor::OnGoalVolumeBeginOverlap(UPrimitiveComponent* Overlappe
         return;
     }
 
-    // The ball must cross the goal volume in the goal's forward direction.
     const FVector GoalForward = GetActorForwardVector().GetSafeNormal();
     const float ForwardSpeed = FVector::DotProduct(Velocity, GoalForward);
     if (ForwardSpeed <= 0.0f)
@@ -76,7 +75,7 @@ void AFootballGoalActor::OnGoalVolumeBeginOverlap(UPrimitiveComponent* Overlappe
         NetReaction->ReactToGoal(Velocity, ImpactSpeed);
     }
 
-    OnGoalScored.Broadcast(Ball, ImpactSpeed);
+    OnGoalScored.Broadcast(Ball, ImpactSpeed, ScoringSide);
 }
 
 void AFootballGoalActor::ResetGoal()
