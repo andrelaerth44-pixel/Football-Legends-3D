@@ -3,6 +3,7 @@
 #include "Ball/FootballBall.h"
 #include "Components/BoxComponent.h"
 #include "Components/PrimitiveComponent.h"
+#include "Components/SceneComponent.h"
 #include "Engine/World.h"
 
 AFootballGoalActor::AFootballGoalActor()
@@ -17,12 +18,21 @@ AFootballGoalActor::AFootballGoalActor()
     GoalVolume->SetGenerateOverlapEvents(true);
     GoalVolume->SetBoxExtent(FVector(180.0f, 360.0f, 120.0f));
 
+    NetVisualRoot = CreateDefaultSubobject<USceneComponent>(TEXT("NetVisualRoot"));
+    NetVisualRoot->SetupAttachment(GoalVolume);
+
     NetReaction = CreateDefaultSubobject<UFootballGoalNetDeformationComponent>(TEXT("NetReaction"));
 }
 
 void AFootballGoalActor::BeginPlay()
 {
     Super::BeginPlay();
+
+    if (NetReaction)
+    {
+        NetReaction->SetTargetComponent(NetVisualRoot);
+    }
+
     GoalVolume->OnComponentBeginOverlap.AddDynamic(this, &AFootballGoalActor::OnGoalVolumeBeginOverlap);
 }
 
@@ -51,7 +61,7 @@ void AFootballGoalActor::OnGoalVolumeBeginOverlap(UPrimitiveComponent* Overlappe
         return;
     }
 
-    // Only accept a ball moving through the goal volume toward the back of the net.
+    // The ball must cross the goal volume in the goal's forward direction.
     const FVector GoalForward = GetActorForwardVector().GetSafeNormal();
     const float ForwardSpeed = FVector::DotProduct(Velocity, GoalForward);
     if (ForwardSpeed <= 0.0f)
