@@ -5,12 +5,14 @@
 #include "FootballGoalActor.generated.h"
 
 class UBoxComponent;
+class USceneComponent;
+class UPrimitiveComponent;
 class UFootballGoalNetDeformationComponent;
 class AFootballBall;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFootballGoalScoredSignature, AFootballBall*, Ball, float, ImpactSpeed);
 
-/** Goal volume that detects a complete ball entry and emits a goal event. */
+/** Goal volume that detects a ball entering the goal and emits a goal event. */
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballGoalActor : public AActor
 {
@@ -21,6 +23,10 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Goal")
     TObjectPtr<UBoxComponent> GoalVolume;
+
+    /** Child scene root intended for the actual net mesh/cloth. */
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Goal")
+    TObjectPtr<USceneComponent> NetVisualRoot;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Goal")
     TObjectPtr<UFootballGoalNetDeformationComponent> NetReaction;
