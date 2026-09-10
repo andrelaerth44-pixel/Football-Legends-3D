@@ -7,7 +7,12 @@
 class AFootballBall;
 class AFootballGoalActor;
 
-enum class EFootballTeamSide : uint8;
+UENUM(BlueprintType)
+enum class EFootballTeamSide : uint8
+{
+    Home UMETA(DisplayName="Home"),
+    Away UMETA(DisplayName="Away")
+};
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FFootballGoalEventSignature, EFootballTeamSide, ScoringSide, int32, HomeScore, int32, AwayScore, AFootballBall*, Ball);
 
