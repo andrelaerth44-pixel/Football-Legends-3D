@@ -5,6 +5,7 @@
 #include "Characters/FootballPlayerMovementComponent.h"
 #include "Ball/FootballBallGameplayComponent.h"
 #include "Ball/FootballBallPossessionComponent.h"
+#include "Ball/FootballBallTargetingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
 AFootballPlayer::AFootballPlayer()
@@ -16,6 +17,7 @@ AFootballPlayer::AFootballPlayer()
     BallInteraction = CreateDefaultSubobject<UFootballBallInteractionComponent>(TEXT("BallInteraction"));
     BallGameplay = CreateDefaultSubobject<UFootballBallGameplayComponent>(TEXT("BallGameplay"));
     BallPossession = CreateDefaultSubobject<UFootballBallPossessionComponent>(TEXT("BallPossession"));
+    BallTargeting = CreateDefaultSubobject<UFootballBallTargetingComponent>(TEXT("BallTargeting"));
     FootballMovement = CreateDefaultSubobject<UFootballPlayerMovementComponent>(TEXT("FootballMovement"));
 
     GetCharacterMovement()->MaxWalkSpeed = 420.0f;
