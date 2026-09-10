@@ -161,6 +161,22 @@ void UFootballKickoffComponent::SetPlayersForKickoff()
     }
 
     KickoffPlayer = FindKickoffPlayer(KickoffSide);
+
+    // Put the restart player immediately behind the ball so possession is
+    // deterministic instead of depending on a formation player being within
+    // the normal control radius.
+    if (IsValid(KickoffPlayer))
+    {
+        const float AttackDirection = KickoffSide == EFootballTeamSide::Home ? 1.0f : -1.0f;
+        const FVector KickoffLocation = Center - FVector(AttackDirection * 110.0f, 0.0f, 0.0f);
+        KickoffPlayer->SetActorLocation(KickoffLocation);
+        KickoffPlayer->SetActorRotation(FRotator(0.0f, AttackDirection > 0.0f ? 0.0f : 180.0f, 0.0f));
+
+        if (KickoffPlayer->GetCharacterMovement())
+        {
+            KickoffPlayer->GetCharacterMovement()->StopMovementImmediately();
+        }
+    }
 }
 
 void UFootballKickoffComponent::PrepareKickoff()
@@ -198,14 +214,20 @@ void UFootballKickoffComponent::StartKickoff()
         return;
     }
 
+    bool bPossessionStarted = false;
+
     if (IsValid(KickoffPlayer) && KickoffPlayer->BallPossession)
     {
-        KickoffPlayer->BallPossession->AcquireBall(MatchBall);
+        bPossessionStarted = KickoffPlayer->BallPossession->AcquireBall(MatchBall);
     }
-    else if (UStaticMeshComponent* Mesh = MatchBall->BallMesh)
+
+    if (!bPossessionStarted)
     {
-        Mesh->SetSimulatePhysics(true);
-        Mesh->WakeAllRigidBodies();
+        if (UStaticMeshComponent* Mesh = MatchBall->BallMesh)
+        {
+            Mesh->SetSimulatePhysics(true);
+            Mesh->WakeAllRigidBodies();
+        }
     }
 
     bKickoffReady = false;
