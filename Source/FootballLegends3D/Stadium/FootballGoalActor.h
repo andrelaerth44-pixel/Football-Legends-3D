@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Match/FootballMatchTypes.h"
 #include "FootballGoalActor.generated.h"
 
 class UBoxComponent;
@@ -10,7 +11,7 @@ class UPrimitiveComponent;
 class UFootballGoalNetDeformationComponent;
 class AFootballBall;
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFootballGoalScoredSignature, AFootballBall*, Ball, float, ImpactSpeed);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FFootballGoalScoredSignature, AFootballBall*, Ball, float, ImpactSpeed, EFootballTeamSide, ScoringSide);
 
 /** Goal volume that detects a ball entering the goal and emits a goal event. */
 UCLASS()
@@ -30,6 +31,10 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Goal")
     TObjectPtr<UFootballGoalNetDeformationComponent> NetReaction;
+
+    /** Team awarded the goal when this goal volume is crossed. */
+    UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category="Goal")
+    EFootballTeamSide ScoringSide = EFootballTeamSide::Home;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal", meta=(ClampMin="0.05"))
     float GoalCooldown = 1.0f;
