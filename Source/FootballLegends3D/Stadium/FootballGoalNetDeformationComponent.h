@@ -35,6 +35,8 @@ protected:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+    void CacheRestLocation();
+
     UPROPERTY()
     TObjectPtr<USceneComponent> TargetComponent;
 
