@@ -6,7 +6,6 @@
 
 class AFootballCameraActor;
 class AFootballBall;
-
 enum class EFootballKickType : uint8;
 
 UCLASS()
@@ -20,13 +19,13 @@ public:
 protected:
     virtual void BeginPlay() override;
     virtual void SetupInputComponent() override;
+    virtual void PlayerTick(float DeltaTime) override;
 
 private:
     void MoveForward(float Value);
     void MoveRight(float Value);
     void StartSprint();
     void StopSprint();
-
     void StartPass();
     void ReleasePass();
     void StartShot();
