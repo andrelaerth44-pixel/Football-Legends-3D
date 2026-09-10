@@ -6,6 +6,8 @@
 
 class UFootballMatchScoreComponent;
 class UFootballGoalSequenceComponent;
+class UFootballGoalReplayComponent;
+class UFootballGoalPresentationComponent;
 
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballMatchState : public AGameStateBase
@@ -20,4 +22,10 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
     TObjectPtr<UFootballGoalSequenceComponent> GoalSequence;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
+    TObjectPtr<UFootballGoalReplayComponent> GoalReplay;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
+    TObjectPtr<UFootballGoalPresentationComponent> GoalPresentation;
 };
