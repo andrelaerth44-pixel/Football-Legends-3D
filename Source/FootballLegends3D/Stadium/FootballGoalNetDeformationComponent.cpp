@@ -6,13 +6,23 @@ UFootballGoalNetDeformationComponent::UFootballGoalNetDeformationComponent()
     PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UFootballGoalNetDeformationComponent::BeginPlay()
+{
+    Super::BeginPlay();
+    CacheRestLocation();
+}
+
 void UFootballGoalNetDeformationComponent::SetTargetComponent(USceneComponent* InTargetComponent)
 {
     TargetComponent = InTargetComponent;
-    if (TargetComponent)
-    {
-        RestRelativeLocation = TargetComponent->GetRelativeLocation();
-    }
+    CacheRestLocation();
+}
+
+void UFootballGoalNetDeformationComponent::CacheRestLocation()
+{
+    RestRelativeLocation = TargetComponent
+        ? TargetComponent->GetRelativeLocation()
+        : FVector::ZeroVector;
 }
 
 void UFootballGoalNetDeformationComponent::ReactToGoal(const FVector& ImpactDirection, float ImpactSpeed)
@@ -22,11 +32,11 @@ void UFootballGoalNetDeformationComponent::ReactToGoal(const FVector& ImpactDire
         return;
     }
 
+    CacheRestLocation();
     const float Intensity = FMath::Clamp(ImpactSpeed / 2500.0f, 0.25f, 1.0f);
     const FVector Direction = ImpactDirection.GetSafeNormal();
     ReactionOffset = -Direction * ReactionStrength * Intensity;
     ReactionTimeRemaining = ReactionDuration;
-    RestRelativeLocation = TargetComponent->GetRelativeLocation();
 }
 
 bool UFootballGoalNetDeformationComponent::IsReacting() const
@@ -44,10 +54,13 @@ void UFootballGoalNetDeformationComponent::TickComponent(float DeltaTime, ELevel
     }
 
     ReactionTimeRemaining = FMath::Max(0.0f, ReactionTimeRemaining - DeltaTime);
-    const float Alpha = ReactionDuration > 0.0f ? ReactionTimeRemaining / ReactionDuration : 0.0f;
-    const float Wave = FMath::Sin((1.0f - Alpha) * PI);
+    const float Alpha = ReactionDuration > 0.0f
+        ? 1.0f - (ReactionTimeRemaining / ReactionDuration)
+        : 1.0f;
+    const float Wave = FMath::Sin(Alpha * PI);
 
     TargetComponent->SetRelativeLocation(RestRelativeLocation + ReactionOffset * Wave);
+
     if (ReactionTimeRemaining <= KINDA_SMALL_NUMBER)
     {
         TargetComponent->SetRelativeLocation(RestRelativeLocation);
