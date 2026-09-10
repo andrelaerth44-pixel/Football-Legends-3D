@@ -1,14 +1,23 @@
 #include "Stadium/FootballGoalNetDeformationComponent.h"
-#include "GameFramework/Actor.h"
+#include "Components/SceneComponent.h"
 
 UFootballGoalNetDeformationComponent::UFootballGoalNetDeformationComponent()
 {
     PrimaryComponentTick.bCanEverTick = true;
 }
 
+void UFootballGoalNetDeformationComponent::SetTargetComponent(USceneComponent* InTargetComponent)
+{
+    TargetComponent = InTargetComponent;
+    if (TargetComponent)
+    {
+        RestRelativeLocation = TargetComponent->GetRelativeLocation();
+    }
+}
+
 void UFootballGoalNetDeformationComponent::ReactToGoal(const FVector& ImpactDirection, float ImpactSpeed)
 {
-    if (!GetOwner())
+    if (!TargetComponent)
     {
         return;
     }
@@ -17,10 +26,7 @@ void UFootballGoalNetDeformationComponent::ReactToGoal(const FVector& ImpactDire
     const FVector Direction = ImpactDirection.GetSafeNormal();
     ReactionOffset = -Direction * ReactionStrength * Intensity;
     ReactionTimeRemaining = ReactionDuration;
-
-    RestRelativeLocation = GetOwner()->GetRootComponent()
-        ? GetOwner()->GetRootComponent()->GetRelativeLocation()
-        : FVector::ZeroVector;
+    RestRelativeLocation = TargetComponent->GetRelativeLocation();
 }
 
 bool UFootballGoalNetDeformationComponent::IsReacting() const
@@ -32,7 +38,7 @@ void UFootballGoalNetDeformationComponent::TickComponent(float DeltaTime, ELevel
 {
     Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-    if (!GetOwner() || ReactionTimeRemaining <= 0.0f)
+    if (!TargetComponent || ReactionTimeRemaining <= 0.0f)
     {
         return;
     }
@@ -41,12 +47,9 @@ void UFootballGoalNetDeformationComponent::TickComponent(float DeltaTime, ELevel
     const float Alpha = ReactionDuration > 0.0f ? ReactionTimeRemaining / ReactionDuration : 0.0f;
     const float Wave = FMath::Sin((1.0f - Alpha) * PI);
 
-    if (USceneComponent* Root = GetOwner()->GetRootComponent())
+    TargetComponent->SetRelativeLocation(RestRelativeLocation + ReactionOffset * Wave);
+    if (ReactionTimeRemaining <= KINDA_SMALL_NUMBER)
     {
-        Root->SetRelativeLocation(RestRelativeLocation + ReactionOffset * Wave);
-        if (ReactionTimeRemaining <= KINDA_SMALL_NUMBER)
-        {
-            Root->SetRelativeLocation(RestRelativeLocation);
-        }
+        TargetComponent->SetRelativeLocation(RestRelativeLocation);
     }
 }
