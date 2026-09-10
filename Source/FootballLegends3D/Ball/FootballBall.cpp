@@ -1,4 +1,5 @@
 #include "Ball/FootballBall.h"
+#include "Characters/FootballPlayer.h"
 #include "Components/StaticMeshComponent.h"
 #include "PhysicsEngine/BodyInstance.h"
 
@@ -58,6 +59,35 @@ bool AFootballBall::IsMoving() const
     return BallMesh && BallMesh->GetPhysicsLinearVelocity().SizeSquared() > FMath::Square(5.0f);
 }
 
+bool AFootballBall::TryClaimPossession(AFootballPlayer* Player)
+{
+    if (!IsValid(Player))
+    {
+        return false;
+    }
+
+    if (IsValid(Possessor) && Possessor != Player)
+    {
+        return false;
+    }
+
+    Possessor = Player;
+    return true;
+}
+
+void AFootballBall::ClearPossession(AFootballPlayer* Player)
+{
+    if (!IsValid(Possessor) || !IsValid(Player) || Possessor == Player)
+    {
+        Possessor = nullptr;
+    }
+}
+
+AFootballPlayer* AFootballBall::GetPossessor() const
+{
+    return Possessor.Get();
+}
+
 void AFootballBall::TriggerDeformation(const FVector& Direction, float Speed)
 {
     if (!BallMesh || MaxDeformation <= 0.0f)
@@ -105,4 +135,9 @@ void AFootballBall::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
     UpdateDeformation(DeltaSeconds);
+
+    if (Possessor && !IsValid(Possessor))
+    {
+        Possessor = nullptr;
+    }
 }
