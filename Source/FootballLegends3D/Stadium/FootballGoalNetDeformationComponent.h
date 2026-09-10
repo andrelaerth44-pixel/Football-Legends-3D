@@ -4,10 +4,9 @@
 #include "Components/ActorComponent.h"
 #include "FootballGoalNetDeformationComponent.generated.h"
 
-class USkeletalMeshComponent;
-class UStaticMeshComponent;
+class USceneComponent;
 
-/** Drives a short-lived visual net reaction when the ball enters the goal. */
+/** Drives a short-lived visual net reaction without moving the goal actor itself. */
 UCLASS(ClassGroup=(Football), meta=(BlueprintSpawnableComponent))
 class FOOTBALLLEGENDS3D_API UFootballGoalNetDeformationComponent : public UActorComponent
 {
@@ -23,6 +22,9 @@ public:
     float ReactionDuration = 0.30f;
 
     UFUNCTION(BlueprintCallable, Category="Goal Net")
+    void SetTargetComponent(USceneComponent* InTargetComponent);
+
+    UFUNCTION(BlueprintCallable, Category="Goal Net")
     void ReactToGoal(const FVector& ImpactDirection, float ImpactSpeed);
 
     UFUNCTION(BlueprintPure, Category="Goal Net")
@@ -32,6 +34,9 @@ protected:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 private:
+    UPROPERTY()
+    TObjectPtr<USceneComponent> TargetComponent;
+
     float ReactionTimeRemaining = 0.0f;
     FVector ReactionOffset = FVector::ZeroVector;
     FVector RestRelativeLocation = FVector::ZeroVector;
