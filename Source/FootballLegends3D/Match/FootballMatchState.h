@@ -9,6 +9,7 @@ class UFootballGoalSequenceComponent;
 class UFootballGoalReplayComponent;
 class UFootballGoalReplayDirectorComponent;
 class UFootballGoalPresentationComponent;
+class UFootballKickoffComponent;
 
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballMatchState : public AGameStateBase
@@ -32,4 +33,7 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
     TObjectPtr<UFootballGoalPresentationComponent> GoalPresentation;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Kickoff")
+    TObjectPtr<UFootballKickoffComponent> Kickoff;
 };
