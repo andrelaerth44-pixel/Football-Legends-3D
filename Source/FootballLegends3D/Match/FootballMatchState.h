@@ -5,6 +5,7 @@
 #include "FootballMatchState.generated.h"
 
 class UFootballMatchScoreComponent;
+class UFootballGoalSequenceComponent;
 
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballMatchState : public AGameStateBase
@@ -16,4 +17,7 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match")
     TObjectPtr<UFootballMatchScoreComponent> Score;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match|Goal")
+    TObjectPtr<UFootballGoalSequenceComponent> GoalSequence;
 };
