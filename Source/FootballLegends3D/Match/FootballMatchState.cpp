@@ -4,6 +4,7 @@
 #include "Match/FootballGoalReplayComponent.h"
 #include "Match/FootballGoalReplayDirectorComponent.h"
 #include "Match/FootballGoalPresentationComponent.h"
+#include "Match/FootballKickoffComponent.h"
 
 AFootballMatchState::AFootballMatchState()
 {
@@ -12,4 +13,5 @@ AFootballMatchState::AFootballMatchState()
     GoalReplay = CreateDefaultSubobject<UFootballGoalReplayComponent>(TEXT("GoalReplay"));
     GoalReplayDirector = CreateDefaultSubobject<UFootballGoalReplayDirectorComponent>(TEXT("GoalReplayDirector"));
     GoalPresentation = CreateDefaultSubobject<UFootballGoalPresentationComponent>(TEXT("GoalPresentation"));
+    Kickoff = CreateDefaultSubobject<UFootballKickoffComponent>(TEXT("Kickoff"));
 }
