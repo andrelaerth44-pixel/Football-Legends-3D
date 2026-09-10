@@ -6,7 +6,7 @@
 
 class UStaticMeshComponent;
 
-/** Physical football with short-lived visual deformation on powerful impacts. */
+/** Physical football with short-lived impact deformation. */
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballBall : public AActor
 {
@@ -47,8 +47,8 @@ protected:
 
 private:
     FVector RestScale = FVector::OneVector;
+    FVector ImpactScale = FVector::OneVector;
     float DeformationTimeRemaining = 0.0f;
-    FVector DeformationAxis = FVector::ForwardVector;
 
     void TriggerDeformation(const FVector& Direction, float Speed);
     void UpdateDeformation(float DeltaSeconds);
