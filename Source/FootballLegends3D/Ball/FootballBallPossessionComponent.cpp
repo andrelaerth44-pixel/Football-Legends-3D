@@ -1,5 +1,6 @@
 #include "Ball/FootballBallPossessionComponent.h"
 #include "Ball/FootballBall.h"
+#include "Characters/FootballPlayer.h"
 #include "Components/FootballBallInteractionComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "GameFramework/Actor.h"
