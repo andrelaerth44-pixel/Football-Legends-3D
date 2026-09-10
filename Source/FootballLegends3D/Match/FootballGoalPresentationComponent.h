@@ -8,6 +8,7 @@
 class AFootballBall;
 class UFootballGoalSequenceComponent;
 class UFootballGoalReplayComponent;
+class UFootballGoalReplayDirectorComponent;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(
     FFootballGoalPresentationSignature,
@@ -27,6 +28,9 @@ public:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal Presentation")
     bool bAutoStartReplay = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal Presentation")
+    bool bAutoStartReplayCamera = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal Presentation", meta=(ClampMin="0.0"))
     float ReplayDelay = 0.25f;
@@ -64,6 +68,9 @@ private:
 
     UPROPERTY()
     TObjectPtr<UFootballGoalReplayComponent> Replay;
+
+    UPROPERTY()
+    TObjectPtr<UFootballGoalReplayDirectorComponent> ReplayDirector;
 
     EFootballTeamSide PendingScoringSide = EFootballTeamSide::Home;
     int32 PendingHomeScore = 0;
