@@ -14,8 +14,6 @@ void UFootballGoalReplayComponent::BeginPlay()
     Super::BeginPlay();
     Frames.Reserve(FMath::CeilToInt(BufferDuration / FMath::Max(SampleInterval, 0.01f)) + 2);
 
-    // The recorder must already be running before the goal happens so the
-    // rolling buffer contains the approach and the actual shot.
     if (UWorld* World = GetWorld())
     {
         for (TActorIterator<AFootballBall> It(World); It; ++It)
@@ -41,6 +39,11 @@ void UFootballGoalReplayComponent::SetTrackedBall(AFootballBall* Ball)
     TrackedBall = Ball;
     Frames.Reset();
     SampleAccumulator = 0.0f;
+}
+
+AFootballBall* UFootballGoalReplayComponent::GetTrackedBall() const
+{
+    return TrackedBall;
 }
 
 void UFootballGoalReplayComponent::CaptureFrame()
