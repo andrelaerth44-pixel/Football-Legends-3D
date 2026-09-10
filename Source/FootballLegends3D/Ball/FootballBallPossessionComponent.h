@@ -5,6 +5,7 @@
 #include "FootballBallPossessionComponent.generated.h"
 
 class AFootballBall;
+class UFootballBallInteractionComponent;
 
 /** Lightweight possession controller. Keeps the ball near the player's preferred touch point while dribbling. */
 UCLASS(ClassGroup=(Football), meta=(BlueprintSpawnableComponent))
@@ -32,6 +33,9 @@ public:
 
     UFUNCTION(BlueprintPure, Category="Possession")
     bool HasBall() const;
+
+    UFUNCTION(BlueprintPure, Category="Possession")
+    AFootballBall* GetControlledBall() const;
 
 protected:
     virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
