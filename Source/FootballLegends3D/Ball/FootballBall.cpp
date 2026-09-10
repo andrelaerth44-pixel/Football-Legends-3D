@@ -4,7 +4,7 @@
 
 AFootballBall::AFootballBall()
 {
-    PrimaryActorTick.bCanEverTick = false;
+    PrimaryActorTick.bCanEverTick = true;
 
     BallMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BallMesh"));
     SetRootComponent(BallMesh);
@@ -18,6 +18,7 @@ AFootballBall::AFootballBall()
     BallMesh->SetMassOverrideInKg(NAME_None, BallMass, true);
     BallMesh->BodyInstance.Restitution = Restitution;
     BallMesh->BodyInstance.bOverrideMass = true;
+    RestScale = BallMesh->GetRelativeScale3D();
 }
 
 void AFootballBall::Kick(const FVector& Direction, float Speed, float Spin)
@@ -39,6 +40,8 @@ void AFootballBall::Kick(const FVector& Direction, float Speed, float Spin)
     {
         BallMesh->AddAngularImpulseInRadians(FVector::UpVector * Spin, NAME_None, true);
     }
+
+    TriggerDeformation(SafeDirection, Speed);
 }
 
 void AFootballBall::StopBall()
@@ -53,4 +56,52 @@ void AFootballBall::StopBall()
 bool AFootballBall::IsMoving() const
 {
     return BallMesh && BallMesh->GetPhysicsLinearVelocity().SizeSquared() > FMath::Square(5.0f);
+}
+
+void AFootballBall::TriggerDeformation(const FVector& Direction, float Speed)
+{
+    if (!BallMesh || MaxDeformation <= 0.0f)
+    {
+        return;
+    }
+
+    DeformationAxis = Direction.GetSafeNormal();
+    DeformationTimeRemaining = DeformationDuration;
+
+    const float Intensity = FMath::Clamp(Speed / 2500.0f, 0.0f, 1.0f);
+    const float Squash = MaxDeformation * Intensity;
+    const FVector LocalAxis = GetActorTransform().InverseTransformVectorNoScale(DeformationAxis).GetSafeNormal();
+    const FVector AxisAbs(FMath::Abs(LocalAxis.X), FMath::Abs(LocalAxis.Y), FMath::Abs(LocalAxis.Z));
+    const FVector Scale = RestScale * FVector(
+        1.0f - Squash * (1.0f - AxisAbs.X),
+        1.0f - Squash * (1.0f - AxisAbs.Y),
+        1.0f - Squash * (1.0f - AxisAbs.Z));
+
+    BallMesh->SetRelativeScale3D(Scale);
+}
+
+void AFootballBall::UpdateDeformation(float DeltaSeconds)
+{
+    if (!BallMesh || DeformationTimeRemaining <= 0.0f)
+    {
+        return;
+    }
+
+    const float PreviousRemaining = DeformationTimeRemaining;
+    DeformationTimeRemaining = FMath::Max(0.0f, DeformationTimeRemaining - DeltaSeconds);
+    const float Alpha = DeformationDuration > 0.0f
+        ? DeformationTimeRemaining / DeformationDuration
+        : 0.0f;
+
+    BallMesh->SetRelativeScale3D(FMath::Lerp(RestScale, BallMesh->GetRelativeScale3D(), Alpha));
+    if (PreviousRemaining > 0.0f && DeformationTimeRemaining <= KINDA_SMALL_NUMBER)
+    {
+        BallMesh->SetRelativeScale3D(RestScale);
+    }
+}
+
+void AFootballBall::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    UpdateDeformation(DeltaSeconds);
 }
