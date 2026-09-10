@@ -29,8 +29,11 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal Sequence", meta=(ClampMin="0.0"))
     float GoalFreezeDuration = 0.20f;
 
+    // Defaulted to the full 6-second replay buffer at 0.75x playback
+    // (approximately 8 seconds), so the sequence no longer cuts the replay
+    // short before requesting kickoff.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Goal Sequence", meta=(ClampMin="0.0"))
-    float PresentationDuration = 2.0f;
+    float PresentationDuration = 8.0f;
 
     UPROPERTY(BlueprintAssignable, Category="Goal Sequence")
     FFootballGoalSequenceStartedSignature OnGoalSequenceStarted;
