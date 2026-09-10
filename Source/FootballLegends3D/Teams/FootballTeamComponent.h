@@ -20,6 +20,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Team")
     EFootballTeamSide Side = EFootballTeamSide::Home;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Team|Player", meta=(ClampMin="0", ClampMax="99"))
+    int32 ShirtNumber = 0;
+
     UFUNCTION(BlueprintCallable, Category="Team")
     void BuildDefaultFormation();
 
@@ -27,5 +30,5 @@ public:
     bool IsOnSide(EFootballTeamSide QuerySide) const;
 
     UFUNCTION(BlueprintPure, Category="Team")
-    const FFootballFormationSlot* FindSlotByShirtNumber(int32 ShirtNumber) const;
+    const FFootballFormationSlot* FindSlotByShirtNumber(int32 InShirtNumber) const;
 };
