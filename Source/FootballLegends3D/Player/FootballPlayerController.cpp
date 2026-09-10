@@ -136,7 +136,7 @@ void AFootballPlayerController::Kick(EFootballKickType KickType, float Charge)
     }
 
     AFootballBall* Ball = Player->BallPossession->HasBall()
-        ? Player->BallInteraction->GetControlledBall()
+        ? Player->BallPossession->GetControlledBall()
         : FindControllableBall();
 
     if (!Ball)
@@ -152,7 +152,6 @@ void AFootballPlayerController::Kick(EFootballKickType KickType, float Charge)
     if (Player->BallGameplay->KickBall(Ball, GetKickDirection(), KickType, Charge))
     {
         Player->BallPossession->ReleaseBall();
-        Player->BallInteraction->ReleaseControlledBall();
     }
 }
 
