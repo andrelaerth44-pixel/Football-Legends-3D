@@ -1,5 +1,6 @@
 #include "Ball/FootballBallGameplayComponent.h"
 #include "Ball/FootballBall.h"
+#include "Components/StaticMeshComponent.h"
 
 UFootballBallGameplayComponent::UFootballBallGameplayComponent()
 {
@@ -74,6 +75,15 @@ bool UFootballBallGameplayComponent::KickBall(AFootballBall* Ball, const FVector
     }
 
     const FVector KickDirection = (SafeDirection + FVector::UpVector * VerticalLift).GetSafeNormal();
+
+    // Possession temporarily disables physics. Re-enable it before Kick() so
+    // the velocity and spin are applied by the physics body immediately.
+    if (UStaticMeshComponent* BallMesh = Ball->BallMesh)
+    {
+        BallMesh->SetSimulatePhysics(true);
+        BallMesh->WakeAllRigidBodies();
+    }
+
     Ball->Kick(KickDirection, Speed, Spin);
     return true;
 }
