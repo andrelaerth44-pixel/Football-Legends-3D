@@ -1,6 +1,8 @@
 #include "Match/FootballGoalReplayComponent.h"
 #include "Ball/FootballBall.h"
 #include "Components/StaticMeshComponent.h"
+#include "EngineUtils.h"
+#include "Engine/World.h"
 
 UFootballGoalReplayComponent::UFootballGoalReplayComponent()
 {
@@ -11,11 +13,27 @@ void UFootballGoalReplayComponent::BeginPlay()
 {
     Super::BeginPlay();
     Frames.Reserve(FMath::CeilToInt(BufferDuration / FMath::Max(SampleInterval, 0.01f)) + 2);
+
+    // The recorder must already be running before the goal happens so the
+    // rolling buffer contains the approach and the actual shot.
+    if (UWorld* World = GetWorld())
+    {
+        for (TActorIterator<AFootballBall> It(World); It; ++It)
+        {
+            SetTrackedBall(*It);
+            break;
+        }
+    }
 }
 
 void UFootballGoalReplayComponent::SetTrackedBall(AFootballBall* Ball)
 {
     if (bReplaying)
+    {
+        return;
+    }
+
+    if (TrackedBall == Ball)
     {
         return;
     }
@@ -86,7 +104,9 @@ void UFootballGoalReplayComponent::StopReplay()
 
     if (TrackedBall && TrackedBall->BallMesh)
     {
+        const FVector LastVelocity = Frames.Num() > 0 ? Frames.Last().BallVelocity : FVector::ZeroVector;
         TrackedBall->BallMesh->SetSimulatePhysics(true);
+        TrackedBall->BallMesh->SetPhysicsLinearVelocity(LastVelocity);
         TrackedBall->BallMesh->WakeAllRigidBodies();
     }
 
