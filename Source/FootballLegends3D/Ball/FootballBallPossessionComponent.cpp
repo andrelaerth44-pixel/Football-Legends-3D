@@ -31,6 +31,11 @@ bool UFootballBallPossessionComponent::AcquireBall(AFootballBall* Ball)
         return false;
     }
 
+    if (!Ball->TryClaimPossession(Cast<AFootballPlayer>(GetOwner())))
+    {
+        return false;
+    }
+
     ControlledBall = Ball;
     Ball->StopBall();
 
@@ -56,9 +61,12 @@ void UFootballBallPossessionComponent::ReleaseBall()
 
     if (Ball)
     {
+        Ball->ClearPossession(Cast<AFootballPlayer>(GetOwner()));
+
         if (UPrimitiveComponent* Primitive = Ball->BallMesh)
         {
             Primitive->SetSimulatePhysics(true);
+            Primitive->WakeAllRigidBodies();
         }
     }
 
