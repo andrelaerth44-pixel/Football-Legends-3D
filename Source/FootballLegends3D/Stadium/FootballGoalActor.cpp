@@ -41,11 +41,20 @@ void AFootballGoalActor::OnGoalVolumeBeginOverlap(UPrimitiveComponent* Overlappe
         return;
     }
 
-    const float ImpactSpeed = Ball->BallMesh
-        ? Ball->BallMesh->GetPhysicsLinearVelocity().Size()
-        : 0.0f;
+    const FVector Velocity = Ball->BallMesh
+        ? Ball->BallMesh->GetPhysicsLinearVelocity()
+        : FVector::ZeroVector;
+    const float ImpactSpeed = Velocity.Size();
 
     if (ImpactSpeed < 100.0f)
+    {
+        return;
+    }
+
+    // Only accept a ball moving through the goal volume toward the back of the net.
+    const FVector GoalForward = GetActorForwardVector().GetSafeNormal();
+    const float ForwardSpeed = FVector::DotProduct(Velocity, GoalForward);
+    if (ForwardSpeed <= 0.0f)
     {
         return;
     }
@@ -54,7 +63,7 @@ void AFootballGoalActor::OnGoalVolumeBeginOverlap(UPrimitiveComponent* Overlappe
 
     if (NetReaction)
     {
-        NetReaction->ReactToGoal(Ball->GetVelocity(), ImpactSpeed);
+        NetReaction->ReactToGoal(Velocity, ImpactSpeed);
     }
 
     OnGoalScored.Broadcast(Ball, ImpactSpeed);
