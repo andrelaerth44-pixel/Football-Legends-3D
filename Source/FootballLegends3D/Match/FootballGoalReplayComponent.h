@@ -52,6 +52,9 @@ public:
     UFUNCTION(BlueprintCallable, Category="Goal Replay")
     void SetTrackedBall(AFootballBall* Ball);
 
+    UFUNCTION(BlueprintPure, Category="Goal Replay")
+    AFootballBall* GetTrackedBall() const;
+
     UFUNCTION(BlueprintCallable, Category="Goal Replay")
     void StartReplay();
 
