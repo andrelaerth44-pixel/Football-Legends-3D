@@ -46,6 +46,21 @@ void AFootballPlayerController::SetupInputComponent()
     InputComponent->BindAction("Shot", IE_Released, this, &AFootballPlayerController::ReleaseShot);
 }
 
+void AFootballPlayerController::PlayerTick(float DeltaTime)
+{
+    Super::PlayerTick(DeltaTime);
+
+    const float ChargeDelta = DeltaTime * ChargeRate;
+    if (bPassHeld)
+    {
+        PassCharge = FMath::Clamp(PassCharge + ChargeDelta, 0.0f, 1.0f);
+    }
+    if (bShotHeld)
+    {
+        ShotCharge = FMath::Clamp(ShotCharge + ChargeDelta, 0.0f, 1.0f);
+    }
+}
+
 void AFootballPlayerController::MoveForward(float Value)
 {
     if (APawn* ControlledPawn = GetPawn())
@@ -115,7 +130,7 @@ void AFootballPlayerController::ReleaseShot()
 void AFootballPlayerController::Kick(EFootballKickType KickType, float Charge)
 {
     AFootballPlayer* Player = Cast<AFootballPlayer>(GetPawn());
-    if (!Player || !Player->BallGameplay || !Player->BallPossession)
+    if (!Player || !Player->BallGameplay || !Player->BallPossession || !Player->BallInteraction)
     {
         return;
     }
@@ -129,12 +144,9 @@ void AFootballPlayerController::Kick(EFootballKickType KickType, float Charge)
         return;
     }
 
-    if (!Player->BallPossession->HasBall())
+    if (!Player->BallPossession->HasBall() && !Player->BallPossession->AcquireBall(Ball))
     {
-        if (!Player->BallPossession->AcquireBall(Ball))
-        {
-            return;
-        }
+        return;
     }
 
     if (Player->BallGameplay->KickBall(Ball, GetKickDirection(), KickType, Charge))
