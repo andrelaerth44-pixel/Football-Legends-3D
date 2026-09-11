@@ -7,7 +7,7 @@
 class UStaticMeshComponent;
 class AFootballPlayer;
 
-/** Physical football with short-lived impact deformation and exclusive possession. */
+/** Physical football with short-lived impact deformation, possession and touch attribution. */
 UCLASS()
 class FOOTBALLLEGENDS3D_API AFootballBall : public AActor
 {
@@ -52,6 +52,21 @@ public:
     UFUNCTION(BlueprintPure, Category="Ball|Possession")
     AFootballPlayer* GetPossessor() const;
 
+    UFUNCTION(BlueprintCallable, Category="Ball|Touch")
+    void RegisterTouch(AFootballPlayer* Player);
+
+    UFUNCTION(BlueprintCallable, Category="Ball|Touch")
+    void RegisterKick(AFootballPlayer* Player);
+
+    UFUNCTION(BlueprintPure, Category="Ball|Touch")
+    AFootballPlayer* GetLastTouchPlayer() const;
+
+    UFUNCTION(BlueprintPure, Category="Ball|Touch")
+    AFootballPlayer* GetLastKicker() const;
+
+    UFUNCTION(BlueprintPure, Category="Ball|Touch")
+    AFootballPlayer* GetPreviousKicker() const;
+
 protected:
     virtual void Tick(float DeltaSeconds) override;
 
@@ -62,6 +77,15 @@ private:
 
     UPROPERTY()
     TObjectPtr<AFootballPlayer> Possessor;
+
+    UPROPERTY()
+    TObjectPtr<AFootballPlayer> LastTouchPlayer;
+
+    UPROPERTY()
+    TObjectPtr<AFootballPlayer> LastKicker;
+
+    UPROPERTY()
+    TObjectPtr<AFootballPlayer> PreviousKicker;
 
     void TriggerDeformation(const FVector& Direction, float Speed);
     void UpdateDeformation(float DeltaSeconds);
