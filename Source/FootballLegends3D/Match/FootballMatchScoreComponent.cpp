@@ -1,6 +1,8 @@
 #include "Match/FootballMatchScoreComponent.h"
 #include "Stadium/FootballGoalActor.h"
 #include "Ball/FootballBall.h"
+#include "Characters/FootballPlayer.h"
+#include "Teams/FootballTeamComponent.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
 
@@ -57,6 +59,26 @@ void UFootballMatchScoreComponent::RegisterGoal(EFootballTeamSide ScoringSide, A
         return;
     }
 
+    LastScorer = nullptr;
+    LastAssist = nullptr;
+
+    if (IsValid(Ball))
+    {
+        LastScorer = Ball->GetLastKicker();
+        if (!IsValid(LastScorer))
+        {
+            LastScorer = Ball->GetLastTouchPlayer();
+        }
+
+        AFootballPlayer* CandidateAssist = Ball->GetPreviousKicker();
+        if (IsValid(LastScorer) && IsValid(CandidateAssist) && CandidateAssist != LastScorer
+            && LastScorer->Team && CandidateAssist->Team
+            && LastScorer->Team->Side == CandidateAssist->Team->Side)
+        {
+            LastAssist = CandidateAssist;
+        }
+    }
+
     if (ScoringSide == EFootballTeamSide::Home)
     {
         ++HomeScore;
@@ -78,6 +100,8 @@ void UFootballMatchScoreComponent::ResetScore()
 {
     HomeScore = 0;
     AwayScore = 0;
+    LastScorer = nullptr;
+    LastAssist = nullptr;
     MatchTimeSeconds = 0.0f;
     bMatchClockRunning = true;
 
