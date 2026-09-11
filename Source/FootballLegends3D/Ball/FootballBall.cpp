@@ -72,6 +72,7 @@ bool AFootballBall::TryClaimPossession(AFootballPlayer* Player)
     }
 
     Possessor = Player;
+    RegisterTouch(Player);
     return true;
 }
 
@@ -86,6 +87,45 @@ void AFootballBall::ClearPossession(AFootballPlayer* Player)
 AFootballPlayer* AFootballBall::GetPossessor() const
 {
     return Possessor.Get();
+}
+
+void AFootballBall::RegisterTouch(AFootballPlayer* Player)
+{
+    if (IsValid(Player))
+    {
+        LastTouchPlayer = Player;
+    }
+}
+
+void AFootballBall::RegisterKick(AFootballPlayer* Player)
+{
+    if (!IsValid(Player))
+    {
+        return;
+    }
+
+    if (LastKicker != Player)
+    {
+        PreviousKicker = LastKicker;
+    }
+
+    LastKicker = Player;
+    LastTouchPlayer = Player;
+}
+
+AFootballPlayer* AFootballBall::GetLastTouchPlayer() const
+{
+    return LastTouchPlayer.Get();
+}
+
+AFootballPlayer* AFootballBall::GetLastKicker() const
+{
+    return LastKicker.Get();
+}
+
+AFootballPlayer* AFootballBall::GetPreviousKicker() const
+{
+    return PreviousKicker.Get();
 }
 
 void AFootballBall::TriggerDeformation(const FVector& Direction, float Speed)
@@ -139,5 +179,20 @@ void AFootballBall::Tick(float DeltaSeconds)
     if (Possessor && !IsValid(Possessor))
     {
         Possessor = nullptr;
+    }
+
+    if (LastTouchPlayer && !IsValid(LastTouchPlayer))
+    {
+        LastTouchPlayer = nullptr;
+    }
+
+    if (LastKicker && !IsValid(LastKicker))
+    {
+        LastKicker = nullptr;
+    }
+
+    if (PreviousKicker && !IsValid(PreviousKicker))
+    {
+        PreviousKicker = nullptr;
     }
 }
