@@ -7,6 +7,7 @@
 
 class AFootballBall;
 class AFootballGoalActor;
+class AFootballPlayer;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FiveParams(FFootballGoalEventSignature, EFootballTeamSide, ScoringSide, int32, HomeScore, int32, AwayScore, AFootballBall*, Ball, float, ImpactSpeed);
 
@@ -23,6 +24,12 @@ public:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Score")
     int32 AwayScore = 0;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Score|Goal Attribution")
+    TObjectPtr<AFootballPlayer> LastScorer;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Score|Goal Attribution")
+    TObjectPtr<AFootballPlayer> LastAssist;
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Match")
     float MatchTimeSeconds = 0.0f;
